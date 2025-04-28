@@ -361,7 +361,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
 
     // Enable Google metering in basic runtime by default;
     if (pageConfig.isLocked()) {
-      this.entitlementsManager().enableMeteredByGoogle();
+      // this.entitlementsManager().enableMeteredByGoogle();
     }
 
     // Handle clicks on the Metering Toast's "Subscribe" button.

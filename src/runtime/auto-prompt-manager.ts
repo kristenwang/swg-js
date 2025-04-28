@@ -39,6 +39,7 @@ import {Doc} from '../model/doc';
 import {Duration, FrequencyCapConfig} from '../model/auto-prompt-config';
 import {Entitlements} from '../api/entitlements';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
+import {InlincCtaApi} from './inline-cta-api';
 import {Intervention} from './intervention';
 import {InterventionType} from '../api/intervention-type';
 import {MiniPromptApi} from './mini-prompt-api';
@@ -153,6 +154,7 @@ export class AutoPromptManager {
   private readonly storage_: Storage;
   private readonly miniPromptAPI_: MiniPromptApi;
   private readonly eventManager_: ClientEventManager;
+  private readonly inlineCtaApi_: InlincCtaApi;
 
   constructor(
     private readonly deps_: Deps,
@@ -180,6 +182,7 @@ export class AutoPromptManager {
     this.miniPromptAPI_.init();
 
     this.eventManager_ = deps_.eventManager();
+    this.inlineCtaApi_ = new InlincCtaApi(deps_);
   }
 
   /**
@@ -222,11 +225,14 @@ export class AutoPromptManager {
     this.setArticleExperimentFlags_(article);
 
     this.shouldRenderOnsitePreview_ = !!article?.previewEnabled;
-
-    if (this.shouldRenderOnsitePreview_) {
-      this.showPreviewAutoPrompt_(article!, params);
+    if (true) {
+      this.showInlineCta_(article!);
     } else {
-      this.showAutoPrompt_(clientConfig, entitlements, article, params);
+      if (this.shouldRenderOnsitePreview_) {
+        this.showPreviewAutoPrompt_(article!, params);
+      } else {
+        this.showAutoPrompt_(clientConfig, entitlements, article, params);
+      }
     }
   }
 
@@ -246,6 +252,19 @@ export class AutoPromptManager {
       article,
       ArticleExperimentFlags.DISMISSIBILITY_CTA_FILTER_EXPERIMENT
     );
+  }
+
+  /**
+   * Displays the appropriate auto prompt for onsite preview.
+   */
+  private async showInlineCta_(article: Article): Promise<void> {
+    const actions = article.audienceActions?.actions;
+    if (!actions || actions.length === 0) {
+      return;
+    }
+    this.inlineCtaApi_.attachInlineCtasWithAttribute(actions);
+
+    return;
   }
 
   /**
